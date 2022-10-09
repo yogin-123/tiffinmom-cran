@@ -1,0 +1,32 @@
+{
+  "name": "tiffinmom",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "tiffin mom",
+  "license": "ISC",
+  "dependencies": {
+    "Validator": "^1.0.8",
+    "aws-sdk": "^2.948.0",
+    "cluster": "^0.7.7",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "ejs": "^3.1.2",
+    "events": "^3.3.0",
+    "exceljs": "^4.3.0",
+    "express": "^4.17.1",
+    "http": "0.0.1-security",
+    "moment-timezone": "^0.5.31",
+    "mysql": "^2.18.1",
+    "node-async-loop": "^1.2.2",
+    "nodemailer": "^6.4.6",
+    "os": "^0.1.1"
+  },
+  "main": "server.js",
+  "description": "tiffinmom website and admin api",
+  "devDependencies": {},
+  "keywords": []
+}
