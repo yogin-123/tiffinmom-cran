@@ -52,7 +52,7 @@ module.exports = {
             } else {
                 order_by = `ORDER BY m.id DESC`;
             }
-            con.query(`SELECT m.*,s.name AS state_name FROM tbl_home_menu AS m JOIN tbl_state AS s ON s.id = m.state_id WHERE m.is_active != 'Delete' ${where} ${order_by} LIMIT ${(parseInt(params.page) * parseInt(PER_PAGE))},${parseInt(PER_PAGE)}`, (error, result) => {
+            con.query(`SELECT m.*,s.name AS state_name FROM tbl_home_menu AS m JOIN tbl_state AS s ON s.id = m.state_id WHERE m.is_active != 'Delete' ${where} ${order_by}`, (error, result) => {
                 if (!error && result[0]) {
                     totalCount(`tbl_home_menu`, (count) => {
                         resolve({
