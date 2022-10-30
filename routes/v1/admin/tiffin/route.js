@@ -164,7 +164,8 @@ router.post('/tiffin_category_list', (req, res) => {
 })
 
 router.post('/add_tiffin_items', (req, res) => {
-  const params = req.body
+  const params = { items: req.body }
+  console.log(req.body)
   const rules = { items: 'required' }
   const validation = checkValidation(params, rules, req.language)
   if (validation.status) {

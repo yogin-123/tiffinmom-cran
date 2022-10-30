@@ -177,21 +177,15 @@ module.exports = {
   add_tiffin_items(params) {
     return new Promise((resolve, reject) => {
       const insertBulkData = []
-      asyncLoop(params.items, (item, next) => {
-        asyncLoop(item.tiffin_id.toString().split(','), (tiffinItem, tiffinNext) => {
-          insertBulkData.push([tiffinItem, item.category_id, item.name, item.price, moment().format('X')])
-          tiffinNext()
-        }, () => {
-          next()
-        })
-      }, () => {
-        con.query('INSERT INTO tbl_tiffin_detail(tiffin_id,category_id,name,price,insert_datetime) VALUES ?', [insertBulkData], (error, result) => {
-          if (!error) {
-            resolve()
-          } else {
-            reject()
-          }
-        })
+      for (const item of params.items) {
+        insertBulkData.push([item.name, item.price, moment().format('X')])
+      }
+      con.query('INSERT INTO tbl_tiffin_detail(name,price,insert_datetime) VALUES ?', [insertBulkData], (error, result) => {
+        if (!error) {
+          resolve()
+        } else {
+          reject()
+        }
       })
     })
   },
