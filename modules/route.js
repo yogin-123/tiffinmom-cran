@@ -21,6 +21,7 @@ app.use('/admin/v1/menu', admin_validate_token, require('./admin/v1/home_menu/ro
 app.use('/admin/v1/subscription', admin_validate_token, require('./admin/v1/subscription/route'));
 app.use('/admin/v1/report', require('./admin/v1/report/route'));
 app.use('/admin/v1/promocode', admin_validate_token, require('./admin/v1/promocode/route'));
+app.use('/admin/v1/braintree_payment', admin_validate_token, require('./admin/v1/braintree_payment/route'));
 
 // website routes
 app.use('/website/v1/authentication', website_validate_token, require('./website/v1/authentication/route'));
