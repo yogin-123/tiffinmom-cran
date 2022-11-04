@@ -96,21 +96,53 @@ module.exports = {
     })
   },
   add_tiffin_category(params) {
-    return new Promise((resolve, reject) => {
-      const insertBulkData = []
-      asyncLoop(params.categorys, (item, next) => {
-        insertBulkData.push([params.login_user_id, item.name, item.quantity, moment().format('X')])
-        next()
-      }, () => {
-        con.query('INSERT INTO tbl_tiffin_category(user_id,name,quantity,insert_datetime) VALUES ?', [insertBulkData], (error, result) => {
-          if (!error) {
-            resolve()
-          } else {
+    try {
+      return new Promise(async (resolve, reject) => {
+        const insertBulkData = []
+        const insertRelationBulkData = []
+        asyncLoop(params.categorys, (item, next) => {
+          insertBulkData.push([params.login_user_id, item.name, item.quantity, moment().format('X'), item.position])
+          if (item?.tiffin_id?.length) {
+            for (const tiffin of item.tiffin_id) {
+              for (const items of item.items_id) {
+                con.query(`select * from tbl_tiffin_category where name='${item.name}'`, (err, category) => {
+                  if (err) console.log(err)
+                  insertRelationBulkData.push([tiffin, category[0].id, items.id, new Date().getTime(), new Date().getTime(), items.position])
+                  con.query('INSERT INTO tbl_tiffin_relation(tiffin_id,category_id,tiffin_detail_id,created_at,updated_at, position) set ?', [insertRelationBulkData], (insertError, insertResult) => {
+                    if (insertError) console.log(insertError)
+                    else {
+                      console.log({ insertError })
+                      reject()
+                    }
+                  })
+                })
+              }
+            }
+          } else if (item?.items_id?.length) {
+            for (const items of item.items_id) {
+              con.query(`select * from tbl_tiffin_category where name='${item.name}'`, (err, category) => {
+                if (err) console.log(err)
+                insertRelationBulkData.push([category[0].id, items.id, new Date().getTime(), new Date().getTime(), items.position])
+                con.query('INSERT INTO tbl_tiffin_relation(category_id,tiffin_detail_id,created_at,updated_at, position) set ?', [insertRelationBulkData], (insertError, insertResult) => {
+                  if (insertError) reject()
+                })
+              })
+            }
+          }
+          next()
+        })
+        con.query('INSERT INTO tbl_tiffin_category(user_id,name,quantity,insert_datetime,position) values ?', [insertBulkData], (error, result) => {
+          if (error) {
+            console.log(error)
             reject()
+          } else {
+            resolve()
           }
         })
       })
-    })
+    } catch (error) {
+      console.log(error)
+    }
   },
   edit_tiffin_category(params) {
     return new Promise((resolve, reject) => {

@@ -97,8 +97,9 @@ router.post('/add_tiffin_category', (req, res) => {
     params.login_user_id = req.login_user_id
     model.add_tiffin_category(params).then((response) => {
       sendResponse(res, 1, lang[req.language].tiffin_category_added, null)
-    }).catch(() => {
-      sendResponse(res, 0, lang[req.language].tiffin_category_not_added, null)
+    }).catch((err) => {
+      if (err) sendResponse(res, 0, lang[req.language].tiffin_category_already_exists, null)
+      else sendResponse(res, 0, lang[req.language].tiffin_category_not_added, null)
     })
   } else {
     sendResponse(res, 0, validation.error, null)
@@ -165,7 +166,6 @@ router.post('/tiffin_category_list', (req, res) => {
 
 router.post('/add_tiffin_items', (req, res) => {
   const params = { items: req.body }
-  console.log(req.body)
   const rules = { items: 'required' }
   const validation = checkValidation(params, rules, req.language)
   if (validation.status) {
