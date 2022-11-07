@@ -4,6 +4,7 @@ const app = express()
 const compression = require('compression')
 const cors = require('cors')
 const routes = require('./routes/route')
+require('./config/sequelize')
 const { APP_NAME, PORT } = require('./config/constants')
 
 require('events').EventEmitter.defaultMaxListeners = 0

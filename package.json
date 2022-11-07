@@ -20,9 +20,11 @@
     "http": "0.0.1-security",
     "moment-timezone": "^0.5.31",
     "mysql": "^2.18.1",
+    "mysql2": "^2.3.3",
     "node-async-loop": "^1.2.2",
     "nodemailer": "^6.4.6",
     "os": "^0.1.1",
+    "sequelize": "^6.25.3",
     "Validator": "^1.0.8"
   },
   "main": "server.js",

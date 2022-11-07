@@ -156,8 +156,7 @@ router.post('/tiffin_category_list', (req, res) => {
     params.login_user_id = req.login_user_id
     model.tiffin_category_list(params).then((response) => {
       sendResponse(res, 1, lang[req.language].tiffin_category_list_su, response)
-    }).catch(() => {
-      sendResponse(res, 0, lang[req.language].tiffin_category_list_not_found, null)
+      if (!response) sendResponse(res, 0, lang[req.language].tiffin_category_list_not_found, null)
     })
   } else {
     sendResponse(res, 0, validation.error, null)
