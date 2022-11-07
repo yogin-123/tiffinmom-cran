@@ -21,7 +21,7 @@ const tbl_tiffin_detail = sequelize.define('tbl_tiffin_detail', {
         type: Sequelize.INTEGER,
         default: moment().format('X')
     }
-});
+}, { timestamps: false, freezeTableName: true });
 
 tbl_tiffin_detail.sync()
 

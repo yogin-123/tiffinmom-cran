@@ -7,7 +7,7 @@ const { totalCount } = require('../../../../config/common')
 const asyncLoop = require('node-async-loop')
 const sequelize = require('../../../../config/sequelize')
 const { Op } = require('sequelize')
-const { tbl_tiffin_category } = require('../../../../models')
+const { tbl_tiffin_category, tbl_tiffin_detail, tbl_tiffin_relation, tbl_tiffins } = require('../../../../models')
 
 module.exports = {
   add_tiffin(params) {
@@ -175,8 +175,6 @@ module.exports = {
     })
   },
   async tiffin_category_list(params) {
-    let where = ''
-    let order_by = ''
     const query = {}
     const order = []
     if (params.search) {
@@ -194,7 +192,8 @@ module.exports = {
     if (!['-1', -1].includes(params.page)) {
       limit = `LIMIT ${(parseInt(params.page) * parseInt(PER_PAGE))},${parseInt(PER_PAGE)}`
     }
-    const result = await tbl_tiffin_category.findAndCountAll({ where: query, order, offset: (parseInt(params.page) * parseInt(PER_PAGE)), limit: parseInt(PER_PAGE) })
+    const result = await tbl_tiffin_relation.findAndCountAll({ order, offset: (parseInt(params.page) * parseInt(PER_PAGE)), limit: parseInt(PER_PAGE), include: [tbl_tiffin_detail, tbl_tiffins] })
+    console.log({ result })
     // const result = await sequelize.query(`SELECT * FROM tbl_tiffin_category WHERE is_active != 'Delete' ${where} ${order_by} ${limit}`, { type: sequelize.QueryTypes.SELECT })
     // for await (const category of result) {
     //   const items = await sequelize.query(`SELECT ttd.id, ttd.name, ttd.price, ttd.is_active, ttr.position FROM tbl_tiffin_relation ttr inner join tbl_tiffin_detail ttd on ttd.id = tiffin_detail_id where ttr.category_id = ${category.id} and ttd.is_active = 'Active' GROUP by ttr.tiffin_detail_id ORDER BY position ASC`, { type: sequelize.QueryTypes.SELECT })
@@ -204,11 +203,11 @@ module.exports = {
     // }
     // if (result.length) {
     //   const [[count], countMeta] = await sequelize.query(`SELECT COUNT(id) AS total FROM tbl_tiffin_category WHERE is_active != 'Delete'`, { types: sequelize.QueryTypes.SELECT })
-    //   return {
-    //     page: parseInt(params.page) + 1,
-    //     count: count.total - 1,
-    //     result
-    //   }
+    return {
+      page: parseInt(params.page) + 1,
+      count: result.count - 1,
+      result: result.rows
+    }
     // }
   },
   add_tiffin_items(params) {

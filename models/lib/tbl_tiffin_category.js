@@ -4,13 +4,13 @@ const moment = require('moment')
 
 const tbl_tiffin_category = sequelize.define('tbl_tiffin_category', {
     user_id: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.BIGINT
     },
     name: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING
     },
     quantity: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER
     },
     is_active: {
         type: Sequelize.STRING,
@@ -24,7 +24,7 @@ const tbl_tiffin_category = sequelize.define('tbl_tiffin_category', {
         type: Sequelize.INTEGER,
         default: moment().format('X')
     }
-});
+}, { freezeTableName: true, timestamps: false })
 
 tbl_tiffin_category.sync()
 
