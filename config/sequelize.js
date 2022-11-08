@@ -13,7 +13,6 @@ const sequelize = new Sequelize(config.DB_NAME, config.DB_USERNAME, config.DB_PA
   timestamps: false
 });
 (() => {
-  console.log('called')
   sequelize.authenticate().then(() => {
     console.log('Connection has been established successfully.')
   }).catch((err) => {

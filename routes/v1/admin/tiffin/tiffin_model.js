@@ -153,7 +153,7 @@ module.exports = {
         update_datetime: moment().format('X')
       }
       const check = await tbl_tiffin_category.findOne({ where: { name: params.name }, raw: true })
-      if (check) reject('Already exists')
+      if (check && params.id === check.id) reject('Already exists')
       await tbl_tiffin_category.update(updateData, { where: { id: params.id } })
       tbl_tiffin_relation.destroy({ where: { category_id: params.id } }).then(async () => {
         if (params.tiffin_id?.length && params.items_id?.length) {
