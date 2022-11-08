@@ -119,7 +119,8 @@ router.post('/edit_tiffin_category', (req, res) => {
     params.login_user_id = req.login_user_id
     model.edit_tiffin_category(params).then((response) => {
       sendResponse(res, 1, lang[req.language].tiffin_category_updated, null)
-    }).catch(() => {
+    }).catch((err) => {
+      console.log(err)
       sendResponse(res, 0, lang[req.language].tiffin_category_not_updated, null)
     })
   } else {
