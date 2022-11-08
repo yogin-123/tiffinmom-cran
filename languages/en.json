@@ -260,6 +260,7 @@
 	"tiffin_items_added": "Tiffin items added",
 	"tiffin_items_not_added": "Tiffin items not added",
 	"tiffin_item_updated": "Tiffin item updated",
+	"tiffin_item_already_exists": "Tiffin item already exists",
 	"tiffin_item_not_updated": "Tiffin item not updated",
 	"tiffin_item_status_su": "Tiffin item {status} successfully",
 	"tiffin_item_status_un": "Tiffin item not {status}",

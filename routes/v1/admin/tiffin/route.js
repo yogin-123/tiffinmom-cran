@@ -79,8 +79,9 @@ router.post('/tiffin_list', (req, res) => {
     params.login_user_id = req.login_user_id
     model.tiffin_list(params).then((response) => {
       sendResponse(res, 1, lang[req.language].tiffin_list_su, response)
-    }).catch(() => {
-      sendResponse(res, 0, lang[req.language].tiffin_list_not_found, null)
+    }).catch((err) => {
+      if (err) sendResponse(res, 0, lang[req.language].tiffin_category_already_exists, null)
+      else sendResponse(res, 0, lang[req.language].tiffin_list_not_found, null)
     })
   } else {
     sendResponse(res, 0, validation.error, null)
@@ -191,7 +192,8 @@ router.post('/edit_tiffin_item', (req, res) => {
     params.login_user_id = req.login_user_id
     model.edit_tiffin_item(params).then((response) => {
       sendResponse(res, 1, lang[req.language].tiffin_item_updated, null)
-    }).catch(() => {
+    }).catch((err) => {
+      if (err) sendResponse(res, 0, lang[req.language].tiffin_item_already_exists, null)
       sendResponse(res, 0, lang[req.language].tiffin_item_not_updated, null)
     })
   } else {

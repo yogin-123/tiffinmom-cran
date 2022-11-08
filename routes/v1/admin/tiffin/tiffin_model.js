@@ -106,15 +106,12 @@ module.exports = {
           if (resCat.length) return reject('Already Exists')
           const insertBulkData = [params.login_user_id, item.name, item.quantity, moment().format('X'), item.position]
           const [insertResult, insertMetaData] = await sequelize.query('INSERT INTO tbl_tiffin_category(user_id,name,quantity,insert_datetime,position) values (?)', { replacements: [insertBulkData], type: sequelize.QueryTypes.INSERT })
-          console.log(insertResult)
           if (insertResult) {
-            console.log('aaa')
             if (item?.items_id.length && item?.tiffin_id.length) {
               asyncLoop(item.tiffin_id, (tiffinId, tiffinNext) => {
                 asyncLoop(item.items_id, async (itemsId, itemsNext) => {
                   const insertRelationBulkData = [tiffinId, insertResult, itemsId.id, new Date().getTime(), new Date().getTime(), itemsId.position]
                   const [insertResultRelation, insertResultMetaData] = await sequelize.query('INSERT INTO tbl_tiffin_relation(tiffin_id, category_id, tiffin_detail_id, created_at, updated_at, position) values (?)', { replacements: [insertRelationBulkData], type: sequelize.QueryTypes.INSERT })
-                  console.log(insertResultRelation)
                   itemsNext()
                 })
                 tiffinNext()
@@ -124,7 +121,6 @@ module.exports = {
                 asyncLoop(item.tiffin_id, async (tiffinId, tiffinNext) => {
                   const insertRelationBulkData = [tiffinId, insertResult, null, new Date().getTime(), new Date().getTime(), null]
                   const [insertResultRelation, insertResultMetaData] = await sequelize.query('INSERT INTO tbl_tiffin_relation(tiffin_id, category_id, tiffin_detail_id, created_at, updated_at, position) values (?)', { replacements: [insertRelationBulkData], type: sequelize.QueryTypes.INSERT })
-                  console.log(insertResultRelation)
 
                   tiffinNext()
                 })
@@ -133,7 +129,6 @@ module.exports = {
                 asyncLoop(params.items_id, async (itemsId, itemsNext) => {
                   const insertRelationBulkData = [null, insertResult, itemsId.id, new Date().getTime(), new Date().getTime(), itemsId.position]
                   const [insertResultRelation, insertResultMetaData] = await sequelize.query('INSERT INTO tbl_tiffin_relation(tiffin_id, category_id, tiffin_detail_id, created_at, updated_at, position) values (?)', { replacements: [insertRelationBulkData], type: sequelize.QueryTypes.INSERT })
-                  console.log(insertResult)
 
                   itemsNext()
                 })
@@ -151,12 +146,60 @@ module.exports = {
     }
   },
   edit_tiffin_category(params) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const updateData = {
         name: params.name,
-        quantity: params.quantity,
+        price: params.price,
         update_datetime: moment().format('X')
       }
+      const check = await tbl_tiffin_category.findOne({ where: { name: params.name }, raw: true })
+      if (check) reject('Already exists')
+      await tbl_tiffin_category.update(updateData, { where: { id: params.id } })
+      tbl_tiffin_relation.destroy({ where: { category_id: params.id } }).then(async () => {
+        if (params.tiffin_id?.length && params.items_id?.length) {
+          for (const tiffin of params.tiffin_id) {
+            for (const items of params.items_id) {
+              const insertQuery = {
+                category_id: params.id,
+                tiffin_id: tiffin,
+                tiffin_detail_id: items.id,
+                position: items.position,
+                created_at: new Date().getTime(),
+                updated_at: new Date().getTime()
+              }
+              await tbl_tiffin_relation.create(insertQuery)
+            }
+          }
+        } else {
+          if (params.tiffin_id?.length) {
+            for (const tiffin of params.tiffin_id) {
+              const insertQuery = {
+                category_id: params.id,
+                tiffin_id: tiffin,
+                tiffin_detail_id: null,
+                position: null,
+                created_at: new Date().getTime(),
+                updated_at: new Date().getTime()
+              }
+              await tbl_tiffin_relation.create(insertQuery)
+            }
+          }
+          if (params.items_id?.length) {
+            for (const item of params.items_id) {
+              const insertQuery = {
+                category_id: params.id,
+                tiffin_id: null,
+                items_id: item.id,
+                position: item.position,
+                created_at: new Date().getTime(),
+                updated_at: new Date().getTime()
+              }
+              await tbl_tiffin_relation.create(insertQuery)
+            }
+          }
+        }
+      })
+      resolve()
     })
   },
   change_tiffin_category_status(params) {
@@ -177,9 +220,11 @@ module.exports = {
   async tiffin_category_list(params) {
     const query = {}
     const order = []
+    let where = ''
+    let order_by
     if (params.search) {
       Object.assign(query, { name: { [Op.iLike]: `%${params.search}%` } })
-      // where += `AND name LIKE '%${params.search}%'`
+      where += `AND name LIKE '%${params.search}%'`
     }
     if (params.sort_by_column && params.sort_by_order) {
       order_by = `ORDER BY ${params.sort_by_column} ${params.sort_by_order}`
@@ -192,53 +237,53 @@ module.exports = {
     if (!['-1', -1].includes(params.page)) {
       limit = `LIMIT ${(parseInt(params.page) * parseInt(PER_PAGE))},${parseInt(PER_PAGE)}`
     }
-    const result = await tbl_tiffin_relation.findAndCountAll({ order, offset: (parseInt(params.page) * parseInt(PER_PAGE)), limit: parseInt(PER_PAGE), include: [tbl_tiffin_detail, tbl_tiffins] })
-    console.log({ result })
-    // const result = await sequelize.query(`SELECT * FROM tbl_tiffin_category WHERE is_active != 'Delete' ${where} ${order_by} ${limit}`, { type: sequelize.QueryTypes.SELECT })
-    // for await (const category of result) {
-    //   const items = await sequelize.query(`SELECT ttd.id, ttd.name, ttd.price, ttd.is_active, ttr.position FROM tbl_tiffin_relation ttr inner join tbl_tiffin_detail ttd on ttd.id = tiffin_detail_id where ttr.category_id = ${category.id} and ttd.is_active = 'Active' GROUP by ttr.tiffin_detail_id ORDER BY position ASC`, { type: sequelize.QueryTypes.SELECT })
-    //   const tiffins = await sequelize.query(`SELECT tt.id, tt.title, tt.price, tt.is_active FROM tbl_tiffin_relation ttr inner join tbl_tiffins tt on tt.id = tiffin_id where ttr.category_id = ${category.id} and tt.is_active = 'Active' GROUP by ttr.tiffin_id`, { type: sequelize.QueryTypes.SELECT })
-    //   category.items_id = items
-    //   category.tiffin_id = tiffins.map((ele) => ele.id)
-    // }
-    // if (result.length) {
-    //   const [[count], countMeta] = await sequelize.query(`SELECT COUNT(id) AS total FROM tbl_tiffin_category WHERE is_active != 'Delete'`, { types: sequelize.QueryTypes.SELECT })
-    return {
-      page: parseInt(params.page) + 1,
-      count: result.count - 1,
-      result: result.rows
+
+    const result = await sequelize.query(`SELECT * FROM tbl_tiffin_category WHERE is_active != 'Delete' ${where} ${order_by} ${limit}`, { type: sequelize.QueryTypes.SELECT })
+    for await (const category of result) {
+      const items = await sequelize.query(`SELECT ttd.id, ttd.name, ttd.price, ttd.is_active, ttr.position FROM tbl_tiffin_relation ttr inner join tbl_tiffin_detail ttd on ttd.id = tiffin_detail_id where ttr.category_id = ${category.id} and ttd.is_active = 'Active' GROUP by ttr.tiffin_detail_id ORDER BY position ASC`, { type: sequelize.QueryTypes.SELECT })
+      const tiffins = await sequelize.query(`SELECT tt.id, tt.title, tt.price, tt.is_active FROM tbl_tiffin_relation ttr inner join tbl_tiffins tt on tt.id = tiffin_id where ttr.category_id = ${category.id} and tt.is_active = 'Active' GROUP by ttr.tiffin_id`, { type: sequelize.QueryTypes.SELECT })
+      category.items_id = items
+      category.tiffin_id = tiffins.map((ele) => ele.id)
     }
-    // }
+    if (result.length) {
+      const [[count], countMeta] = await sequelize.query('SELECT COUNT(id) AS total FROM tbl_tiffin_category WHERE is_active != \'Delete\'', { types: sequelize.QueryTypes.SELECT })
+      return {
+        page: parseInt(params.page) + 1,
+        count: count.total - 1,
+        result
+      }
+    }
   },
   add_tiffin_items(params) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const insertBulkData = []
       for (const item of params.items) {
-        insertBulkData.push([item.name, item.price, moment().format('X')])
+        const exists = await tbl_tiffin_detail.findOne({ where: { name: params.name } })
+        if (exists) return reject('Already Exists')
+        insertBulkData.push({
+          name: item.name, price: item.price, insert_datetime: moment().format('X')
+        })
       }
-      con.query('INSERT INTO tbl_tiffin_detail(name,price,insert_datetime) VALUES ?', [insertBulkData], (error, result) => {
-        if (!error) {
-          resolve()
-        } else {
-          reject()
-        }
-      })
+
+      await tbl_tiffin_detail.bulkCreate(insertBulkData)
+      resolve()
     })
   },
   edit_tiffin_item(params) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const updateData = {
         name: params.name,
         price: params.price,
         update_datetime: moment().format('X')
       }
-      con.query(`UPDATE tbl_tiffin_detail SET ? WHERE id = ${params.id}`, updateData, (error, result) => {
-        if (!error) {
-          resolve()
-        } else {
-          reject()
-        }
-      })
+
+      const exists = await tbl_tiffin_detail.findOne({ where: { name: params.name } })
+
+      if (exists) reject('Already Exists')
+
+      else await tbl_tiffin_detail.update(updateData, { where: { id: params.id } })
+
+      resolve()
     })
   },
   change_tiffin_item_status(params) {
