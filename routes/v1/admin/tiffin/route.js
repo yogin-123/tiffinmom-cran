@@ -120,7 +120,7 @@ router.post('/edit_tiffin_category', (req, res) => {
     model.edit_tiffin_category(params).then((response) => {
       sendResponse(res, 1, lang[req.language].tiffin_category_updated, null)
     }).catch((err) => {
-      console.log(err)
+      if (err) sendResponse(res, 0, lang[req.language].tiffin_category_already_exists, null)
       sendResponse(res, 0, lang[req.language].tiffin_category_not_updated, null)
     })
   } else {
