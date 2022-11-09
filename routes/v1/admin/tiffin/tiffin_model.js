@@ -258,13 +258,13 @@ module.exports = {
     return new Promise(async (resolve, reject) => {
       const insertBulkData = []
       for (const item of params.items) {
-        const exists = await tbl_tiffin_detail.findOne({ where: { name: params.name } })
+        const exists = await tbl_tiffin_detail.findOne({ where: { name: item.name } })
         if (exists) return reject('Already Exists')
+        else tbl_tiffin_detail.create({ name: item.name, price: item.price, insert_datetime: moment().format('X') })
         insertBulkData.push({
-          name: item.name, price: item.price, insert_datetime: moment().format('X')
+          name: item.name, price: item.price, is_active: 'Active', insert_datetime: moment().format('X')
         })
       }
-
       await tbl_tiffin_detail.bulkCreate(insertBulkData)
       resolve()
     })

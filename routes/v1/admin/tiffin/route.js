@@ -173,7 +173,8 @@ router.post('/add_tiffin_items', (req, res) => {
     params.login_user_id = req.login_user_id
     model.add_tiffin_items(params).then((response) => {
       sendResponse(res, 1, lang[req.language].tiffin_items_added, null)
-    }).catch(() => {
+    }).catch((err) => {
+      if (err) return sendResponse(res, 0, lang[req.language].tiffin_item_already_exists, null)
       sendResponse(res, 0, lang[req.language].tiffin_items_not_added, null)
     })
   } else {
