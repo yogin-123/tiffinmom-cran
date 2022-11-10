@@ -152,7 +152,7 @@ module.exports = {
         price: params.price,
         update_datetime: moment().format('X')
       }
-      const check = await tbl_tiffin_category.findOne({ where: { name: params.name, id: { [Op.ne]: params.id } }, raw: true })
+      const check = await tbl_tiffin_category.findOne({ where: { name: params.name, id: { [Op.ne]: params.id }, is_active: { [Op.ne]: 'Delete' } }, raw: true })
       if (check) return reject('Already exists')
       await tbl_tiffin_category.update(updateData, { where: { id: params.id } })
       tbl_tiffin_relation.destroy({ where: { category_id: params.id } }).then(async () => {
@@ -279,7 +279,7 @@ module.exports = {
 
       const exists = await tbl_tiffin_detail.findOne({ where: { name: params.name } })
 
-      if (exists) reject('Already Exists')
+      if (exists) return reject('Already Exists')
 
       else await tbl_tiffin_detail.update(updateData, { where: { id: params.id } })
 

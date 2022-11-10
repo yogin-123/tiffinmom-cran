@@ -157,8 +157,8 @@ router.post('/tiffin_category_list', (req, res) => {
   if (validation.status) {
     params.login_user_id = req.login_user_id
     model.tiffin_category_list(params).then((response) => {
-      sendResponse(res, 1, lang[req.language].tiffin_category_list_su, response)
-      if (!response) sendResponse(res, 0, lang[req.language].tiffin_category_list_not_found, null)
+      if (!response) return sendResponse(res, 0, lang[req.language].tiffin_category_list_not_found, null)
+      else return sendResponse(res, 1, lang[req.language].tiffin_category_list_su, response)
     })
   } else {
     sendResponse(res, 0, validation.error, null)
@@ -174,7 +174,7 @@ router.post('/add_tiffin_items', (req, res) => {
     model.add_tiffin_items(params).then((response) => {
       sendResponse(res, 1, lang[req.language].tiffin_items_added, null)
     }).catch((err) => {
-      if (err) return sendResponse(res, 0, lang[req.language].tiffin_item_already_exists, null)
+      if (err) return sendResponse(res, 5, lang[req.language].tiffin_item_already_exists, null)
       sendResponse(res, 0, lang[req.language].tiffin_items_not_added, null)
     })
   } else {
@@ -195,7 +195,7 @@ router.post('/edit_tiffin_item', (req, res) => {
     model.edit_tiffin_item(params).then((response) => {
       sendResponse(res, 1, lang[req.language].tiffin_item_updated, null)
     }).catch((err) => {
-      if (err) sendResponse(res, 0, lang[req.language].tiffin_item_already_exists, null)
+      if (err) sendResponse(res, 5, lang[req.language].tiffin_item_already_exists, null)
       sendResponse(res, 0, lang[req.language].tiffin_item_not_updated, null)
     })
   } else {
