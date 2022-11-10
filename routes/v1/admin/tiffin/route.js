@@ -97,13 +97,13 @@ router.post('/add_tiffin_category', (req, res) => {
   if (validation.status) {
     params.login_user_id = req.login_user_id
     model.add_tiffin_category(params).then((response) => {
-      sendResponse(res, 1, lang[req.language].tiffin_category_added, null)
+      return sendResponse(res, 1, lang[req.language].tiffin_category_added, null)
     }).catch((err) => {
-      if (err) sendResponse(res, 0, lang[req.language].tiffin_category_already_exists, null)
-      else sendResponse(res, 0, lang[req.language].tiffin_category_not_added, null)
+      if (err) return sendResponse(res, 0, lang[req.language].tiffin_category_already_exists, null)
+      else return sendResponse(res, 0, lang[req.language].tiffin_category_not_added, null)
     })
   } else {
-    sendResponse(res, 0, validation.error, null)
+    return sendResponse(res, 0, validation.error, null)
   }
 })
 
@@ -118,10 +118,10 @@ router.post('/edit_tiffin_category', (req, res) => {
   if (validation.status) {
     params.login_user_id = req.login_user_id
     model.edit_tiffin_category(params).then((response) => {
-      sendResponse(res, 1, lang[req.language].tiffin_category_updated, null)
+      return sendResponse(res, 1, lang[req.language].tiffin_category_updated, null)
     }).catch((err) => {
-      if (err) sendResponse(res, 0, lang[req.language].tiffin_category_already_exists, null)
-      sendResponse(res, 0, lang[req.language].tiffin_category_not_updated, null)
+      if (err) return sendResponse(res, 5, lang[req.language].tiffin_category_already_exists, null)
+      return sendResponse(res, 0, lang[req.language].tiffin_category_not_updated, null)
     })
   } else {
     sendResponse(res, 0, validation.error, null)

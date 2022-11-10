@@ -104,8 +104,8 @@ module.exports = {
         asyncLoop(params.categorys, async (item, next) => {
           const [resCat, metaData] = await sequelize.query(`select * from tbl_tiffin_category where name = '${item.name}' and is_active != 'Delete'`)
           if (resCat.length) return reject('Already Exists')
-          const insertBulkData = [params.login_user_id, item.name, item.quantity, moment().format('X'), item.position]
-          const [insertResult, insertMetaData] = await sequelize.query('INSERT INTO tbl_tiffin_category(user_id,name,quantity,insert_datetime,position) values (?)', { replacements: [insertBulkData], type: sequelize.QueryTypes.INSERT })
+          const insertBulkData = [params.login_user_id, item.name, item.quantity, 'Active', moment().format('X'), item.position]
+          const [insertResult, insertMetaData] = await sequelize.query('INSERT INTO tbl_tiffin_category(user_id,name,quantity,is_active,insert_datetime,position) values (?)', { replacements: [insertBulkData], type: sequelize.QueryTypes.INSERT })
           if (insertResult) {
             if (item?.items_id.length && item?.tiffin_id.length) {
               asyncLoop(item.tiffin_id, (tiffinId, tiffinNext) => {
@@ -125,11 +125,10 @@ module.exports = {
                   tiffinNext()
                 })
               }
-              if (category?.items_id.length) {
+              if (item?.items_id.length) {
                 asyncLoop(params.items_id, async (itemsId, itemsNext) => {
                   const insertRelationBulkData = [null, insertResult, itemsId.id, new Date().getTime(), new Date().getTime(), itemsId.position]
                   const [insertResultRelation, insertResultMetaData] = await sequelize.query('INSERT INTO tbl_tiffin_relation(tiffin_id, category_id, tiffin_detail_id, created_at, updated_at, position) values (?)', { replacements: [insertRelationBulkData], type: sequelize.QueryTypes.INSERT })
-
                   itemsNext()
                 })
               }
@@ -137,6 +136,7 @@ module.exports = {
           } else return reject()
           next()
         }, (err) => {
+          console.log({ err })
           if (err) reject()
           resolve()
         })
@@ -152,8 +152,8 @@ module.exports = {
         price: params.price,
         update_datetime: moment().format('X')
       }
-      const check = await tbl_tiffin_category.findOne({ where: { name: params.name }, raw: true })
-      if (check && params.id === check.id) reject('Already exists')
+      const check = await tbl_tiffin_category.findOne({ where: { name: params.name, id: { [Op.ne]: params.id } }, raw: true })
+      if (check) return reject('Already exists')
       await tbl_tiffin_category.update(updateData, { where: { id: params.id } })
       tbl_tiffin_relation.destroy({ where: { category_id: params.id } }).then(async () => {
         if (params.tiffin_id?.length && params.items_id?.length) {
