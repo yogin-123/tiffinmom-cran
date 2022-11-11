@@ -7,7 +7,7 @@ const tbl_tiffin_detail_old = sequelize.define('tbl_tiffin_detail_old', {
         type: Sequelize.STRING
     },
     price: {
-        type: Sequelize.FLOAT
+        type: Sequelize.DOUBLE
     },
     tiffin_id: {
         type: Sequelize.BIGINT
