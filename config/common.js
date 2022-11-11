@@ -7,6 +7,7 @@ const GLOBALS = require('./constants')
 const lang = require('./language')
 const moment = require('moment')
 const asyncLoop = require('node-async-loop')
+const validator = require('Validator')
 
 const common = {
   async validate_token(req, res, next) {
@@ -94,7 +95,7 @@ const common = {
       integer: lang[language].integer,
       in: lang[language].in
     }
-    const v = require('Validator').make(params, rules, messages)
+    const v = validator.make(params, rules, messages)
     if (v.fails()) {
       const errors = v.getErrors()
       return {

@@ -25,7 +25,7 @@
     "nodemailer": "^6.4.6",
     "os": "^0.1.1",
     "sequelize": "^6.25.3",
-    "Validator": "1.0.8"
+    "Validator": "^1.0.8"
   },
   "main": "server.js",
   "description": "tiffinmom website and admin api",

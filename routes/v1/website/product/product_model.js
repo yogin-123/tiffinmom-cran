@@ -129,7 +129,7 @@ module.exports = {
           asyncLoop(result, (item, next) => {
             if (item.type === 'Tiffin') {
               connection.query(`SELECT title,description,CONCAT('${S3_URL + TIFFIN_IMAGE}',image) AS image FROM tbl_tiffins WHERE id = ${item.tiffin_id} AND is_active = 'Active' LIMIT 1`, (tiffinError, tiffinResult) => {
-                connection.query(`SELECT tc.id,tc.name,td.name AS descripion,cd.tiffin_detail_id,cd.quantity FROM tbl_cart_detail AS cd JOIN tbl_tiffin_detail AS td ON td.id = cd.tiffin_detail_id JOIN tbl_tiffin_category AS tc ON tc.id = td.category_id WHERE cd.cart_id = ${item.id} AND cd.is_active = 'Active'`, (detailError, detailResult) => {
+                connection.query(`SELECT tc.id,tc.name,td.name AS descripion,cd.tiffin_detail_id,cd.quantity FROM tbl_cart_detail AS cd join tbl_tiffin_relation on ttr.id = cd.tiffin_detail_id JOIN tbl_tiffin_detail AS td ON td.id = ttr.tiffin_detail_id JOIN tbl_tiffin_category AS tc ON tc.id = ttr.category_id WHERE cd.cart_id = ${item.id} AND cd.is_active = 'Active'`, (detailError, detailResult) => {
                   item.image = tiffinResult[0].image
                   item.name = tiffinResult[0].title
                   item.description = tiffinResult[0].description
@@ -233,9 +233,9 @@ module.exports = {
             connection.query(`DELETE FROM tbl_cart WHERE user_id = ${params.login_user_id}`, (emptyError, emptyResult) => {
               const { email, firstName, lastName, phone } = params.billing_details
               if (email) {
-                connection.query(`SELECT CONCAT(t.title," : ",IFNULL(GROUP_CONCAT(CONCAT(td.name,' ( Qty. ',otd.quantity,' )')),'')) AS name,od.quantity,t.price FROM tbl_orders AS o JOIN tbl_order_detail AS od ON od.order_id = o.id JOIN tbl_tiffins AS t ON t.id = od.tiffin_id JOIN tbl_order_tiffin_detail AS otd ON otd.detail_id = od.id JOIN tbl_tiffin_detail AS td ON td.id = otd.category_id JOIN tbl_tiffin_category AS tc ON tc.id = td.category_id WHERE o.is_active = 'Active' AND o.id = ${insertResult.insertId} AND tc.quantity != 0 GROUP BY od.id ORDER BY od.id DESC;`, (tiffinOrderError, tiffinOrderResult) => {
+                connection.query(`SELECT CONCAT(t.title," : ",IFNULL(GROUP_CONCAT(CONCAT(td.name,' ( Qty. ',otd.quantity,' )')),'')) AS name,od.quantity,t.price FROM tbl_orders AS o JOIN tbl_order_detail AS od ON od.order_id = o.id JOIN tbl_tiffins AS t ON t.id = od.tiffin_id JOIN tbl_order_tiffin_detail AS otd ON otd.detail_id = od.id join tbl_tiffin_relation as ttr on ttr.id = otd.category_id JOIN tbl_tiffin_detail AS td ON td.id = ttr.tiffin_detail_id JOIN tbl_tiffin_category AS tc ON tc.id = ttr.category_id WHERE o.is_active = 'Active' AND o.id = ${insertResult.insertId} AND tc.quantity != 0 GROUP BY od.id ORDER BY od.id DESC;`, (tiffinOrderError, tiffinOrderResult) => {
                   connection.query(`SELECT p.name,od.quantity,od.price FROM tbl_orders AS o JOIN tbl_order_detail AS od ON od.order_id = o.id JOIN tbl_product AS p ON p.id = od.product_id WHERE o.is_active = 'Active' AND o.id = ${insertResult.insertId} GROUP BY od.id ORDER BY od.id DESC;`, (trayOrderError, trayOrderResult) => {
-                    connection.query(`SELECT td.name,otd.quantity,td.price FROM tbl_order_tiffin_detail AS otd JOIN tbl_tiffin_detail AS td ON td.id = otd.category_id JOIN tbl_tiffin_category AS tc ON tc.id = td.category_id AND tc.quantity = 0 WHERE otd.order_id = ${insertResult.insertId};`, (extraTiffinOrderError, extraTiffinOrderResult) => {
+                    connection.query(`SELECT td.name,otd.quantity,td.price FROM tbl_order_tiffin_detail AS otd join tbl_tiffin_relation on ttr.id = otd.category_id JOIN tbl_tiffin_detail AS td ON td.id = ttr.tiffin_detial_id JOIN tbl_tiffin_category AS tc ON tc.id = ttr.category_id AND tc.quantity = 0 WHERE otd.order_id = ${insertResult.insertId};`, (extraTiffinOrderError, extraTiffinOrderResult) => {
                       const orders = [...tiffinOrderResult, ...trayOrderResult, ...extraTiffinOrderResult]
                       let orderHtml = ''
                       orders.forEach((element) => {
@@ -340,7 +340,7 @@ module.exports = {
       connection.query(`SELECT * FROM tbl_orders WHERE user_id = ${params.login_user_id} AND is_active = 'Active'`, (error, result) => {
         if (!error && result[0]) {
           asyncLoop(result, (item, next) => {
-            connection.query(`SELECT od.*,IF(IFNULL(p.name,'') = '',t.title,p.name) AS name,IF(IFNULL(p.image,'') = '',CONCAT('${S3_URL + TIFFIN_IMAGE}',t.image),CONCAT('${S3_URL + PRODUCT_IMAGE}',p.image)) AS image,IFNULL(GROUP_CONCAT(CONCAT(td.name,' ( Qty. ',otd.quantity,' )')),'') AS tiffin_item FROM tbl_order_detail AS od LEFT JOIN tbl_tiffins AS t ON t.id = od.tiffin_id LEFT JOIN tbl_product AS p ON p.id = od.product_id LEFT JOIN tbl_order_tiffin_detail AS otd ON otd.detail_id = od.id LEFT JOIN tbl_tiffin_detail AS td ON td.id = otd.category_id WHERE od.order_id = ${item.id} AND od.is_active = 'Active'`, (orderDetailError, orderDetailResult) => {
+            connection.query(`SELECT od.*,IF(IFNULL(p.name,'') = '',t.title,p.name) AS name,IF(IFNULL(p.image,'') = '',CONCAT('${S3_URL + TIFFIN_IMAGE}',t.image),CONCAT('${S3_URL + PRODUCT_IMAGE}',p.image)) AS image,IFNULL(GROUP_CONCAT(CONCAT(td.name,' ( Qty. ',otd.quantity,' )')),'') AS tiffin_item FROM tbl_order_detail AS od LEFT JOIN tbl_tiffins AS t ON t.id = od.tiffin_id LEFT JOIN tbl_product AS p ON p.id = od.product_id LEFT JOIN tbl_order_tiffin_detail AS otd ON otd.detail_id = od.id left join tbl_tiffin_relation as ttr on ttr.id = otd.category_id LEFT JOIN tbl_tiffin_detail AS td ON td.id = ttr.tiffin_detail_id WHERE od.order_id = ${item.id} AND od.is_active = 'Active'`, (orderDetailError, orderDetailResult) => {
               item.detail = (!orderDetailError && orderDetailResult[0]) ? orderDetailResult : []
               next()
             })

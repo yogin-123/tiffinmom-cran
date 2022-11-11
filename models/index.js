@@ -5,6 +5,8 @@ const tbl_tiffin_detail = require('./lib/tbl_tiffin_detail')
 const tbl_tiffin_relation = require('./lib/tbl_tiffin_relation')
 const tbl_order_detail = require('./lib/tbl_order_detail')
 const tbl_order_tiffin_detail = require('./lib/tbl_order_tiffin_detail')
+const tbl_cart = require('./lib/tbl_cart')
+const tbl_cart_detail = require('./lib/tbl_cart_detail')
 const tbl_tiffin_detail_old = require('./lib/tbl_tiffin_detail_old')
 
 module.exports = {
@@ -14,5 +16,7 @@ module.exports = {
   tbl_tiffin_relation,
   tbl_order_detail,
   tbl_order_tiffin_detail,
-  tbl_tiffin_detail_old
+  tbl_tiffin_detail_old,
+  tbl_cart,
+  tbl_cart_detail
 }
