@@ -13,15 +13,16 @@ const tbl_tiffin_relation = sequelize.define('tbl_tiffin_relation', {
     type: Sequelize.BIGINT
   },
   position: {
-    type: Sequelize.INTEGER
+    type: Sequelize.INTEGER,
+    defaultValue: 0
   },
   created_at: {
-    type: Sequelize.INTEGER
-    // default: moment().format('X')
+    type: Sequelize.INTEGER,
+    defaultValue: moment().format('X')
   },
   updated_at: {
-    type: Sequelize.INTEGER
-    // default: moment().format('X')
+    type: Sequelize.INTEGER,
+    defaultValue: moment().format('X')
   }
 }, { timestamps: false, freezeTableName: true })
 

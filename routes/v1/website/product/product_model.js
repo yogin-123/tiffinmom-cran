@@ -5,6 +5,7 @@ const moment = require('moment')
 const { APP_NAME, S3_URL, PRODUCT_IMAGE, PER_PAGE, TIFFIN_IMAGE } = require('../../../../config/constants')
 const { send_email } = require('../../../../config/common')
 const template = require('../../../../config/template')
+const { tbl_cart: CartModel, tbl_cart_detail: CartDetailModel } = require('../../../../models')
 const asyncLoop = require('node-async-loop')
 
 const tbl_category = 'tbl_category'
@@ -51,35 +52,52 @@ module.exports = {
   /// //                                Add To Cart                                     /////
   /// ///////////////////////////////////////////////////////////////////////////////////////
   add_to_cart(params) {
-    return new Promise((resolve, reject) => {
-      let where = ''
-      if (params.type === 'Tiffin') {
-        where = `AND tiffin_id = ${params.tiffin_id}`
-      } else {
-        where = `AND product_id = ${params.product_id}`
-      }
-      connection.query(`SELECT id FROM ${tbl_cart} WHERE user_id = ${params.login_user_id} ${where} LIMIT 1`, (error, result) => {
-        if (!error && result[0]) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const query = { where: {} }
+        if (params.type === 'Tiffin') {
+          Object.assign(query.where, { tiffin_id: params.tiffin_id })
+          where = `AND tiffin_id = ${params.tiffin_id}`
+        } else {
+          Object.assign(query.where, { product_id: params.product_id })
+          where = `AND product_id = ${params.product_id}`
+        }
+
+        Object.assign(query.where, { user_id: params.login_user_id })
+
+        const result = await CartModel.findOne(query, { raw: true })
+        console.log({ result })
+        if (result) {
           if ([0, '0'].includes(params.quantity)) {
-            connection.query('SET SQL_SAFE_UPDATES=0;')
-            connection.query(`DELETE FROM tbl_cart WHERE id = ${result[0].id}`, (deleteError, deleteResult) => {
-              connection.query(`DELETE FROM tbl_cart_detail WHERE order_id = ${result[0].id}`, (deleteDetailError, deleteDetailResult) => {
-                resolve('deleted')
-              })
-            })
+            // connection.query('SET SQL_SAFE_UPDATES=0;')
+            await CartModel.destroy({ where: { id: result.id } })
+            await CartDetailModel.destroy({ where: { cart_id: result.id } })
+            resolve('updated')
           } else {
             const updateData = {
               quantity: params.quantity,
               price: params.price,
               update_datetime: moment().format('X')
             }
-            connection.query(`UPDATE ${tbl_cart} SET ? WHERE id = ${result[0].id}`, updateData, (updateError, updateResult) => {
-              if (!updateError) {
-                resolve('updated')
-              } else {
-                reject('updated')
+            await CartModel.update(updateData, { where: { id: result.id } })
+            await CartDetailModel.destroy({ where: { cart_id: result.id } })
+            if (['Tiffin'].includes(params.type)) {
+              const insertBulkData = []
+              for (const item of params.tiffin_detail_id) {
+                const itemInsertQuery = {
+                  cart_id: result.id,
+                  tiffin_detail_id: item.detail_id,
+                  quantity: item.quantity,
+                  insert_datetime: moment().format('X')
+                }
+                insertBulkData.push(itemInsertQuery)
               }
-            })
+              await CartDetailModel.bulkCreate(insertBulkData)
+              resolve('updated')
+            } else {
+              resolve('added')
+            }
+            resolve('updated')
           }
         } else {
           const insertData = {
@@ -95,27 +113,31 @@ module.exports = {
           } else {
             insertData.product_id = params.product_id
           }
-          connection.query(`INSERT INTO ${tbl_cart} SET ?`, insertData, (insertError, insertResult) => {
-            if (!insertError) {
-              if (['Tiffin'].includes(params.type)) {
-                const insertBulkData = []
-                asyncLoop(params.tiffin_detail_id, (item, next) => {
-                  insertBulkData.push([insertResult.insertId, item.detail_id, item.quantity, moment().format('X')])
-                  next()
-                }, () => {
-                  connection.query('INSERT INTO tbl_cart_detail(cart_id,tiffin_detail_id,quantity,insert_datetime) VALUES ?', [insertBulkData], (bulkError, bulkResult) => {
-                    resolve('added')
-                  })
-                })
-              } else {
-                resolve('added')
+          const insertResult = await CartModel.create(insertData)
+          if (insertResult) {
+            if (['Tiffin'].includes(params.type)) {
+              const insertBulkData = []
+              for (const item of params.tiffin_detail_id) {
+                const itemInsertQuery = {
+                  cart_id: insertResult.getDataValue('id'),
+                  tiffin_detail_id: item.detail_id,
+                  quantity: item.quantity,
+                  insert_datetime: moment().format('X')
+                }
+                insertBulkData.push(itemInsertQuery)
               }
+              await CartDetailModel.bulkCreate(insertBulkData)
+              resolve('added')
             } else {
-              reject('added')
+              resolve('added')
             }
-          })
+          } else {
+            reject('added')
+          }
         }
-      })
+      } catch (error) {
+        console.log(error)
+      }
     })
   },
 
@@ -129,7 +151,8 @@ module.exports = {
           asyncLoop(result, (item, next) => {
             if (item.type === 'Tiffin') {
               connection.query(`SELECT title,description,CONCAT('${S3_URL + TIFFIN_IMAGE}',image) AS image FROM tbl_tiffins WHERE id = ${item.tiffin_id} AND is_active = 'Active' LIMIT 1`, (tiffinError, tiffinResult) => {
-                connection.query(`SELECT tc.id,tc.name,td.name AS descripion,cd.tiffin_detail_id,cd.quantity FROM tbl_cart_detail AS cd join tbl_tiffin_relation on ttr.id = cd.tiffin_detail_id JOIN tbl_tiffin_detail AS td ON td.id = ttr.tiffin_detail_id JOIN tbl_tiffin_category AS tc ON tc.id = ttr.category_id WHERE cd.cart_id = ${item.id} AND cd.is_active = 'Active'`, (detailError, detailResult) => {
+                connection.query(`SELECT tc.id,tc.name,td.name AS descripion,cd.tiffin_detail_id,cd.quantity FROM tbl_cart_detail AS cd left join tbl_tiffin_relation ttr on ttr.id = cd.tiffin_detail_id JOIN tbl_tiffin_detail AS td ON td.id = ttr.tiffin_detail_id JOIN tbl_tiffin_category AS tc ON tc.id = ttr.category_id WHERE cd.cart_id = ${item.id} AND cd.is_active = 'Active'`, (detailError, detailResult) => {
+                  console.log({ detailResult })
                   item.image = tiffinResult[0].image
                   item.name = tiffinResult[0].title
                   item.description = tiffinResult[0].description

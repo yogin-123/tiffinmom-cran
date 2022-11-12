@@ -150,6 +150,7 @@ module.exports = {
       const updateData = {
         name: params.name,
         price: params.price,
+        position: params.position,
         update_datetime: moment().format('X')
       }
       const check = await tbl_tiffin_category.findOne({ where: { name: params.name, id: { [Op.ne]: params.id }, is_active: { [Op.ne]: 'Delete' } }, raw: true })

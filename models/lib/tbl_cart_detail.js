@@ -14,15 +14,15 @@ const tbl_cart_detail = sequelize.define('tbl_cart_detail', {
   },
   is_active: {
     type: Sequelize.STRING,
-    default: 'Active'
+    defaultValue: 'Active'
   },
   insert_datetime: {
     type: Sequelize.INTEGER,
-    default: moment().format('X')
+    defaultValue: moment().format('X')
   },
   update_datetime: {
     type: Sequelize.STRING,
-    default: moment().format('X')
+    defaultValue: moment().format('X')
   }
 }, { timestamps: false, freezeTableName: true })
 

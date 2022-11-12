@@ -26,7 +26,7 @@ const tbl_cart = sequelize.define('tbl_cart', {
   },
   is_active: {
     type: Sequelize.STRING,
-    default: 'Active'
+    defaultValue: 'Active'
   },
   insert_datetime: {
     type: Sequelize.INTEGER,

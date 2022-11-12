@@ -13,11 +13,12 @@ const tbl_tiffin_category = sequelize.define('tbl_tiffin_category', {
     type: Sequelize.INTEGER
   },
   position: {
-    type: Sequelize.INTEGER
+    type: Sequelize.INTEGER,
+    defaultValue: 0
   },
   is_active: {
     type: Sequelize.STRING,
-    default: 'Active'
+    defaultValue: 'Active'
   },
   insert_datetime: {
     type: Sequelize.INTEGER,
