@@ -175,7 +175,7 @@ router.post('/add_tiffin_items', (req, res) => {
       sendResponse(res, 1, lang[req.language].tiffin_items_added, null)
     }).catch((err) => {
       if (err) return sendResponse(res, 5, lang[req.language].tiffin_item_already_exists, null)
-      sendResponse(res, 0, lang[req.language].tiffin_items_not_added, null)
+      return sendResponse(res, 0, lang[req.language].tiffin_items_not_added, null)
     })
   } else {
     sendResponse(res, 0, validation.error, null)

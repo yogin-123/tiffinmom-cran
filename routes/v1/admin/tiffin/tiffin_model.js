@@ -277,7 +277,7 @@ module.exports = {
         update_datetime: moment().format('X')
       }
 
-      const exists = await tbl_tiffin_detail.findOne({ where: { name: params.name } })
+      const exists = await tbl_tiffin_detail.count({ where: { name: params.name, is_active: 'Active', id: { [Op.ne]: params.id } } })
 
       if (exists) return reject('Already Exists')
 
