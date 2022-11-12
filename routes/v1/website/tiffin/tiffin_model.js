@@ -29,7 +29,6 @@ module.exports = {
             if (!categoryError && categoryResult[0]) {
               asyncLoop(categoryResult, (item, next) => {
                 connection.query(`SELECT ttr.id,td.name,td.price FROM tbl_tiffin_relation as ttr left join tbl_tiffin_detail as td on td.id = ttr.tiffin_detail_id WHERE td.is_active = 'Active' AND ttr.tiffin_id = ${params.tiffin_id} AND ttr.category_id = ${item.id} order by ttr.position ASC`, (itemsError, itemResult) => {
-                  console.log({ itemResult },)
                   if (!itemsError && itemResult[0]) {
                     item.item = itemResult
                   }
