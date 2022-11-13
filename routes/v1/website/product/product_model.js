@@ -66,7 +66,6 @@ module.exports = {
         Object.assign(query.where, { user_id: params.login_user_id })
 
         const result = await CartModel.findOne(query, { raw: true })
-        console.log({ result })
         if (result) {
           if ([0, '0'].includes(params.quantity)) {
             // connection.query('SET SQL_SAFE_UPDATES=0;')
@@ -152,7 +151,6 @@ module.exports = {
             if (item.type === 'Tiffin') {
               connection.query(`SELECT title,description,CONCAT('${S3_URL + TIFFIN_IMAGE}',image) AS image FROM tbl_tiffins WHERE id = ${item.tiffin_id} AND is_active = 'Active' LIMIT 1`, (tiffinError, tiffinResult) => {
                 connection.query(`SELECT tc.id,tc.name,td.name AS descripion,cd.tiffin_detail_id,cd.quantity FROM tbl_cart_detail AS cd left join tbl_tiffin_relation ttr on ttr.id = cd.tiffin_detail_id JOIN tbl_tiffin_detail AS td ON td.id = ttr.tiffin_detail_id JOIN tbl_tiffin_category AS tc ON tc.id = ttr.category_id WHERE cd.cart_id = ${item.id} AND cd.is_active = 'Active'`, (detailError, detailResult) => {
-                  console.log({ detailResult })
                   item.image = tiffinResult[0].image
                   item.name = tiffinResult[0].title
                   item.description = tiffinResult[0].description
@@ -188,7 +186,6 @@ module.exports = {
   /// ///////////////////////////////////////////////////////////////////////////////////////
   place_order(params) {
     return new Promise((resolve, reject) => {
-      console.log(params)
       const insertData = {
         user_id: params.login_user_id,
         state_id: params.state_id,
@@ -224,7 +221,6 @@ module.exports = {
             }
             connection.query('INSERT INTO tbl_order_detail SET ?', orderDetail, (orderDetailError, orderDetailResult) => {
               if (item.tiffin_detail_id && item.tiffin_detail_id.length > 0) {
-                console.log(item.tiffin_detail_id)
                 asyncLoop(item.tiffin_detail_id, (tiffin, next) => {
                   const tiffinDetail = {
                     order_id: insertResult.insertId,
