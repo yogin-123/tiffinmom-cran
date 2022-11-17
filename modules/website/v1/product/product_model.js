@@ -271,7 +271,7 @@ module.exports = {
                                                 password: `zepzgsluuxfbefnw`
                                             };
                                             if ([1, "1"].includes(params.state_id)) {
-                                                sendEmail.email = `orders.nj@tiffinmom.com`
+                                                sendEmail.email = `orders.newjersey@tiffinmom.com`
                                                 sendEmail.password = `@Panna2020`
                                             } else if ([3, "3"].includes(params.state_id)) {
                                                 sendEmail.email = `orders.louis@tiffinmom.com`

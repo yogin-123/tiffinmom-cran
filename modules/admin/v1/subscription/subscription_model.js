@@ -87,4 +87,33 @@ module.exports = {
             })
         })
     },
+    full_subscription_list(params) {
+        return new Promise((resolve, reject) => {
+            con.query(`SELECT * FROM tbl_subscription_plan WHERE is_active = 'Active' AND state_id = ${params.state_id} ORDER BY id DESC`, (error, result) => {
+                if (!error && result[0]) {
+                    resolve(result)
+                } else {
+                    reject();
+                }
+            })
+        })
+    },
+    subscription_added(params) {
+        return new Promise((resolve, reject) => {
+            let insertData = {
+                user_id: params.user_id,
+                transaction_id: params.transaction_id,
+                subscription_id: params.subscription_id,
+                price: params.price,
+                insert_datetime: moment().format("X")
+            }
+            con.query(`INSERT INTO tbl_user_subscription SET ?`, insertData, (error, result) => {
+                if (!error) {
+                    resolve();
+                } else {
+                    reject();
+                }
+            })
+        })
+    },
 }
