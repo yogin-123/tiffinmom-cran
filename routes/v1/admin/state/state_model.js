@@ -76,4 +76,15 @@ module.exports = {
             })
         })
     },
+    full_state_list() {
+        return new Promise((resolve, reject) => {
+            con.query(`SELECT * FROM tbl_state WHERE is_active = 'Active' ORDER BY id DESC`, (error, result) => {
+                if (!error && result[0]) {
+                    resolve(result)
+                } else {
+                    reject();
+                }
+            })
+        })
+    },
 }

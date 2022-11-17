@@ -54,4 +54,15 @@ module.exports = {
             })
         })
     },
+    full_user_list() {
+        return new Promise((resolve, reject) => {
+            con.query(`SELECT id,first_name,last_name,email FROM ${tbl_user} WHERE is_active = 'Active' ORDER BY id DESC`, (error, result) => {
+                if (!error && result[0]) {
+                    resolve(result)
+                } else {
+                    reject();
+                }
+            })
+        })
+    },
 }

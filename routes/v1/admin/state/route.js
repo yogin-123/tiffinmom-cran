@@ -80,4 +80,12 @@ router.post("/state_list", (req, res) => {
     }
 })
 
+router.post("/full_state_list", (req, res) => {
+        model.full_state_list().then((response) => {
+            sendResponse(res, 1, lang[req.language]['state_list_su'], response);
+        }).catch((error) => {
+            sendResponse(res, 0, lang[req.language]['state_list_not_found'], null);
+        })
+})
+
 module.exports = router;

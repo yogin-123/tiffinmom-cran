@@ -22,6 +22,14 @@ router.post("/user_list", (req, res) => {
     }
 })
 
+router.post("/full_user_list", (req, res) => {
+    model.full_user_list().then((response) => {
+        sendResponse(res, 1, lang[req.language]['user_list_su'], response);
+    }).catch((error) => {
+        sendResponse(res, 0, lang[req.language]['user_list_not_found'], null);
+    })
+})
+
 //////////////////////////////////////////////////////////////////////////////////////////
 /////                            Change User Status                                  /////
 //////////////////////////////////////////////////////////////////////////////////////////
