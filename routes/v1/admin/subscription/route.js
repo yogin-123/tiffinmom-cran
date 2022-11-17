@@ -88,4 +88,41 @@ router.post("/subscription_list", (req, res) => {
     }
 })
 
+router.post("/full_subscription_list", (req, res) => {
+    let params = req.body;
+    let rules = { state_id: "required" }
+    let validation = checkValidation(params, rules, req.language);
+    if (validation.status) {
+        params.login_user_id = req.login_user_id;
+        model.full_subscription_list(params).then((response) => {
+            sendResponse(res, 1, lang[req.language]['subscription_list_su'], response);
+        }).catch((error) => {
+            sendResponse(res, 0, lang[req.language]['subscription_list_not_found'], null);
+        })
+    } else {
+        sendResponse(res, 0, validation.error, null);
+    }
+})
+
+router.post(`/custom_user_subscription`, (request, response) => {
+    let params = request.body;
+    let rules = {
+        user_id: "required",
+        transaction_id: "required",
+        subscription_id: "required",
+        price: "required"
+    }
+    let validation = checkValidation(params, rules, request.language);
+    if (validation.status) {
+        params.login_user_id = request.login_user_id;
+        model.subscription_added(params).then((responseData) => {
+            sendResponse(response, 1, lang[request.language]['subscription_list'], responseData);
+        }).catch((error) => {
+            sendResponse(response, 2, lang[request.language]['no_subscription'], null);
+        })
+    } else {
+        sendResponse(response, 0, validation.error, null);
+    }
+});
+
 module.exports = router;
